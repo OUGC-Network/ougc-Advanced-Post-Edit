@@ -8,7 +8,7 @@
  *
  *    Website: https://ougc.network
  *
- *    Allows administrators to edit additional post data.
+ *    Allow administrators to edit additional post data.
  *
  ***************************************************************************
  ****************************************************************************

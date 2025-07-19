@@ -8,7 +8,7 @@
  *
  *    Website: https://ougc.network
  *
- *    Allows administrators to edit additional post data.
+ *    Allow administrators to edit additional post data.
  *
  ***************************************************************************
  ****************************************************************************
@@ -28,13 +28,13 @@
 
 $l = [
     'ougcAdvancedPostEdit' => 'ougc Admin Post Edit',
-    'ougcAdvancedPostEditDescription' => 'Allows administrators to edit additional post data.',
+    'ougcAdvancedPostEditDescription' => 'Allow administrators to edit additional post data.',
 
     'setting_group_ougc_adminpostedit' => 'ougc Admin Post Edit',
-    'setting_group_ougc_adminpostedit_desc' => 'Allows administrators to edit additional post data.',
+    'setting_group_ougc_adminpostedit_desc' => 'Allow administrators to edit additional post data.',
 
-    'setting_ougc_adminpostedit_groups' => 'Allowed Groups',
-    'setting_ougc_adminpostedit_groups_desc' => 'Allowed usergroups to use this feature.',
+    'setting_ougc_adminpostedit_groups' => 'Moderator Groups',
+    'setting_ougc_adminpostedit_groups_desc' => 'Select the moderator groups allowed to use this feature.',
 
     'ougcAdvancedPostEditPluginLibrary' => 'This plugin requires <a href="{1}">PluginLibrary</a> version {2} or later to be uploaded to your forum.'
 ];
