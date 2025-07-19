@@ -35,17 +35,17 @@ use PostDataHandler;
 use DateTimeImmutable;
 
 use function ougc\AdvancedPostEdit\Core\getSetting;
+use function ougc\AdvancedPostEdit\Core\languageLoad;
 use function ougc\AdvancedPostEdit\Core\recountUserPosts;
 use function ougc\AdvancedPostEdit\Core\recountUserThreads;
 
-function datahandler_post_update(PostDataHandler &$dataHandler): PostDataHandler
+function datahandler_post_validate_post(PostDataHandler &$dataHandler): PostDataHandler
 {
     if (!is_moderator($dataHandler->data['fid'], 'caneditposts') || !is_member(getSetting('groups'))) {
         return $dataHandler;
     }
 
     global $mybb, $db;
-    global $ougcAdvancedPostEditDateline, $ougcAdvancedPostEditUser;
 
     $postID = (int)$dataHandler->data['pid'];
 
@@ -53,44 +53,88 @@ function datahandler_post_update(PostDataHandler &$dataHandler): PostDataHandler
 
     $editOptions = $mybb->get_input('ougc_adminpostedit', MyBB::INPUT_ARRAY);
 
-    $editOptions['username'] = trim($editOptions['username']);
-
     if (!empty($editOptions['date']) && !empty($editOptions['time'])) {
         $timeSpanStartStamp = (new DateTimeImmutable("{$editOptions['date']} {$editOptions['time']}"))->getTimestamp();
 
-        if ($timeSpanStartStamp && $timeSpanStartStamp <= TIME_NOW) {
-            $dataHandler->post_update_data['dateline'] = $timeSpanStartStamp;
+        if (!$timeSpanStartStamp || $timeSpanStartStamp > TIME_NOW) {
+            global $lang;
 
-            $ougcAdvancedPostEditDateline = true;
+            languageLoad(true);
+
+            $dataHandler->set_error($lang->ougcAdvancedPostDataHandlerInvalidDateTime);
+        } else {
+            $dataHandler->data['ougcAdvancedPostEditDateTime'] = $timeSpanStartStamp;
         }
     }
+
+    $editOptions['username'] = trim($editOptions['username']);
 
     if (!empty($editOptions['username'])) {
         $userData = get_user_by_username($editOptions['username'], ['fields' => ['username']]);
 
-        $userID = (int)$userData['uid'];
+        if (empty($userData['uid']) && empty($editOptions['forceusername'])) {
+            global $lang;
 
-        if (!empty($userData['uid']) && $userID !== (int)$postData['uid'] || !empty($editOptions['forceusername'])) {
-            $dataHandler->post_update_data['uid'] = $userID;
+            languageLoad(true);
 
-            $dataHandler->post_update_data['username'] = $db->escape_string(
-                $userData['username'] ?? $editOptions['username']
-            );
+            $dataHandler->set_error($lang->ougcAdvancedPostDataHandlerInvalidUser);
+        } else {
+            $dataHandler->data['ougcAdvancedPostEditUserID'] = $userData['uid'] ?? 0;
 
-            $ougcAdvancedPostEditUser = true;
+            $dataHandler->data['ougcAdvancedPostEditUserName'] = $userData['username'] ?? $editOptions['username'];
         }
     }
 
     if (isset($editOptions['ipaddress']) &&
-        my_inet_ntop($db->unescape_binary($postData['ipaddress'])) !== $editOptions['ipaddress'] &&
-        (
-            filter_var($editOptions['ipaddress'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ||
-            filter_var($editOptions['ipaddress'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)
-        )) {
-        $dataHandler->post_update_data['ipaddress'] = $db->escape_binary(my_inet_pton($editOptions['ipaddress']));
+        my_inet_ntop($db->unescape_binary($postData['ipaddress'])) !== $editOptions['ipaddress']
+
+    ) {
+        if (!filter_var($editOptions['ipaddress'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) &&
+            !filter_var($editOptions['ipaddress'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            global $lang;
+
+            languageLoad(true);
+
+            $dataHandler->set_error($lang->ougcAdvancedPostDataHandlerInvalidIpAddress);
+        } else {
+            $dataHandler->data['ougcAdvancedPostEditIpAddress'] = $editOptions['ipaddress'];
+        }
     }
 
     if (!empty($editOptions['reset'])) {
+        $dataHandler->data['ougcAdvancedPostEditResetEditData'] = true;
+    }
+
+    return $dataHandler;
+}
+
+function datahandler_post_update(PostDataHandler &$dataHandler): PostDataHandler
+{
+    if (!is_moderator($dataHandler->data['fid'], 'caneditposts') || !is_member(getSetting('groups'))) {
+        return $dataHandler;
+    }
+
+    global $db;
+
+    if (isset($dataHandler->data['ougcAdvancedPostEditDateTime'])) {
+        $dataHandler->post_update_data['dateline'] = $dataHandler->data['ougcAdvancedPostEditDateTime'];
+    }
+
+    if (isset($dataHandler->data['ougcAdvancedPostEditUserID'])) {
+        $dataHandler->post_update_data['uid'] = (int)$dataHandler->data['ougcAdvancedPostEditUserID'];
+
+        $dataHandler->post_update_data['username'] = $db->escape_string(
+            $dataHandler->data['ougcAdvancedPostEditUserName']
+        );
+    }
+
+    if (isset($dataHandler->data['ougcAdvancedPostEditIpAddress'])) {
+        $dataHandler->post_update_data['ipaddress'] = $db->escape_binary(
+            my_inet_pton($dataHandler->data['ougcAdvancedPostEditIpAddress'])
+        );
+    }
+
+    if (!empty($dataHandler->data['ougcAdvancedPostEditResetEditData'])) {
         $dataHandler->post_update_data['edituid'] = $dataHandler->post_update_data['edittime'] = 0;
     }
 
@@ -99,9 +143,7 @@ function datahandler_post_update(PostDataHandler &$dataHandler): PostDataHandler
 
 function datahandler_post_update_end(PostDataHandler &$dataHandler): PostDataHandler
 {
-    global $ougcAdvancedPostEditDateline, $ougcAdvancedPostEditUser;
-
-    if (empty($ougcAdvancedPostEditDateline) && empty($ougcAdvancedPostEditUser)) {
+    if (!isset($dataHandler->post_update_data['dateline']) && isset($dataHandler->data['ougcAdvancedPostEditUserID'])) {
         return $dataHandler;
     }
 
@@ -110,10 +152,6 @@ function datahandler_post_update_end(PostDataHandler &$dataHandler): PostDataHan
     $postID = (int)$dataHandler->data['pid'];
 
     $threadID = (int)$dataHandler->data['tid'];
-
-    $newUserID = (int)$dataHandler->post_update_data['uid'];
-
-    $oldUserID = (int)$dataHandler->data['uid'];
 
     $query = $db->simple_select(
         'posts',
@@ -126,21 +164,42 @@ function datahandler_post_update_end(PostDataHandler &$dataHandler): PostDataHan
 
     $threadUpdateData = [];
 
-    if ($firstPostID === $postID && !empty($ougcAdvancedPostEditUser)) {
-        $threadUpdateData['uid'] = $dataHandler->post_update_data['uid'];
+    if ($firstPostID === $postID) {
+        if (isset($dataHandler->data['ougcAdvancedPostEditUserID'])) {
+            $threadUpdateData['uid'] = $dataHandler->post_update_data['uid'];
 
-        $threadUpdateData['username'] = $dataHandler->post_update_data['username'];
-    }
+            $threadUpdateData['username'] = $dataHandler->post_update_data['username'];
+        }
 
-    if ($firstPostID === $postID && !empty($ougcAdvancedPostEditDateline)) {
-        $threadUpdateData['dateline'] = $dataHandler->post_update_data['dateline'];
+        if (isset($dataHandler->post_update_data['dateline'])) {
+            $threadUpdateData['dateline'] = $dataHandler->post_update_data['dateline'];
+        }
+
+        if (empty($dataHandler->return_values['firstpost'])) {
+            $query = $db->simple_select(
+                'posts',
+                'uid',
+                "tid='{$threadID}'",
+                ['limit' => 1, 'limit_start' => 1, 'order_by' => 'dateline, pid']
+            );
+
+            $oldFirstPostUserID = (int)$db->fetch_field($query, 'uid');
+
+            recountUserThreads($oldFirstPostUserID);
+
+            recountUserPosts($oldFirstPostUserID);
+        }
     }
 
     if (!empty($threadUpdateData)) {
         $db->update_query('threads', $threadUpdateData, "tid='{$threadID}'");
     }
 
-    if (!empty($ougcAdvancedPostEditDateline)) {
+    $oldUserID = (int)$dataHandler->data['uid'];
+
+    if (isset($dataHandler->post_update_data['dateline']) && isset($dataHandler->post_update_data['uid'])) {
+        $newUserID = (int)$dataHandler->post_update_data['uid'];
+
         $query = $db->simple_select(
             'posts',
             'dateline',
@@ -170,11 +229,13 @@ function datahandler_post_update_end(PostDataHandler &$dataHandler): PostDataHan
         }
     }
 
-    recountUserThreads($newUserID);
+    if (isset($newUserID)) {
+        recountUserThreads($newUserID);
 
-    recountUserPosts($newUserID);
+        recountUserPosts($newUserID);
+    }
 
-    if ($newUserID !== $oldUserID) {
+    if (!isset($newUserID) || $newUserID !== $oldUserID) {
         recountUserThreads($oldUserID);
 
         recountUserPosts($oldUserID);

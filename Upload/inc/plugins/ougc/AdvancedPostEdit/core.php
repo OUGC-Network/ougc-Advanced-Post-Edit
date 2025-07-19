@@ -66,11 +66,39 @@ function hooksAdd(string $namespace): void
     }
 }
 
-function languageLoad(): void
+function languageLoad(bool $isDataHandler = false): void
 {
     global $lang;
 
-    isset($lang->ougcAdvancedPostEdit) || $lang->load('ougc_adminpostedit');
+    isset($lang->ougcAdvancedPostEdit) || $lang->load('ougc_adminpostedit', $isDataHandler);
+}
+
+function getTemplateName(string $templateName = ''): string
+{
+    $templatePrefix = '';
+
+    if ($templateName) {
+        $templatePrefix = '_';
+    }
+
+    return "ougcadminpostedit{$templatePrefix}{$templateName}";
+}
+
+function getTemplate(string $templateName = '', bool $enableHTMLComments = true): string
+{
+    global $templates;
+
+    if (DEBUG) {
+        $filePath = ROOT . "/templates/{$templateName}.html";
+
+        $templateContents = file_get_contents($filePath);
+
+        $templates->cache[getTemplateName($templateName)] = $templateContents;
+    } elseif (my_strpos($templateName, '/') !== false) {
+        $templateName = substr($templateName, strpos($templateName, '/') + 1);
+    }
+
+    return $templates->render(getTemplateName($templateName), true, $enableHTMLComments);
 }
 
 function getSetting(string $settingKey = ''): bool|string|int

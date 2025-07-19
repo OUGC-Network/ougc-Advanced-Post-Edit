@@ -28,17 +28,16 @@
 
 $l = [
     'ougcAdvancedPostEdit' => 'ougc Admin Post Edit',
+
+    'ougcAdvancedPostEditTitle' => 'Advanced Edit Options',
+    'ougcAdvancedPostEditDateTime' => 'Post Date/Time',
+    'ougcAdvancedPostEditAuthor' => 'Post Author',
+    'ougcAdvancedPostEditIpAddress' => 'Post IP Address',
+    'ougcAdvancedPostEditSilent' => 'Do not update this post <em>edited by</em> message.',
+    'ougcAdvancedPostEditReset' => 'Reset the post <em>edited by</em> message.',
+    'ougcAdvancedPostEditForceUserChange' => "Force user as <em>guest</em> if user doesn't exist.",
+
+    'ougcAdvancedPostDataHandlerInvalidDateTime' => 'The date/time is invalid. Please supply a valid date/time.',
+    'ougcAdvancedPostDataHandlerInvalidUser' => 'The user does not exist. Please supply a valid user.',
+    'ougcAdvancedPostDataHandlerInvalidIpAddress' => 'The IP address is invalid. Please supply a IP address.',
 ];
-
-// Plugin API
-$l['setting_group_ougc_adminpostedit'] = 'ougc Admin Post Edit';
-$l['setting_group_ougc_adminpostedit_desc'] = 'Allows administrators to edit additional post data.';
-
-// Edit post
-$l['ougc_adminpostedit_post'] = 'Admin Post Edit';
-$l['ougc_adminpostedit_post_time'] = 'Time:';
-$l['ougc_adminpostedit_post_author'] = 'Post Author:';
-$l['ougc_adminpostedit_post_ip'] = 'Post IP:';
-$l['ougc_adminpostedit_post_silentedit'] = 'Do not update this post <i>edited by</i> message.';
-$l['ougc_adminpostedit_post_resetedit'] = 'Reset the post <i>edited by</i> message.';
-$l['ougc_adminpostedit_post_forceusername'] = 'If username doesn\'t exists force it and set the author as guest.';

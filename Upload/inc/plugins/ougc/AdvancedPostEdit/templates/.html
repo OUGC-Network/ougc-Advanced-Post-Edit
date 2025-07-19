@@ -1,0 +1,97 @@
+<tr>
+    <td class="tcat" colspan="2"><strong>{$lang->ougcAdvancedPostEditTitle}</strong></td>
+</tr>
+<tr>
+    <td class="trow2" valign="top">
+        <strong>{$lang->ougcAdvancedPostEditDateTime}:</strong>
+    </td>
+    <td class="trow2">
+        <input type="date" class="textbox" name="ougc_adminpostedit[date]" value="{$postDate}"/>
+        <input type="time" class="textbox" name="ougc_adminpostedit[time]" value="{$postTime}"/>
+    </td>
+</tr>
+<tr>
+    <td class="trow2" valign="top"><strong>{$lang->ougcAdvancedPostEditAuthor}:</strong></td>
+    <td class="trow2">
+        <input type="text" class="textbox" name="ougc_adminpostedit[username]" id="username" value="{$userName}"/>
+        <link rel="stylesheet" href="{$mybb->asset_url}/jscripts/select2/select2.css">
+        <script type="text/javascript" src="{$mybb->asset_url}/jscripts/select2/select2.min.js?ver=1804"></script>
+        <script type="text/javascript">
+            <!--
+            if (use_xmlhttprequest == "1") {
+                MyBB.select2();
+                $("#username").select2({
+                    placeholder: "{$lang->search_user}",
+                    minimumInputLength: 3,
+                    maximumSelectionSize: 3,
+                    multiple: false,
+                    ajax: {
+                        url: "xmlhttp.php?action=get_users",
+                        dataType: 'json',
+                        data: function (term, page) {
+                            return {
+                                query: term,
+                            };
+                        },
+                        results: function (data, page) {
+                            return {results: data};
+                        }
+                    },
+                    initSelection: function (element, callback) {
+                        var value = $(element).val();
+                        if (value !== "") {
+                            callback({
+                                id: value,
+                                text: value
+                            });
+                        }
+                    },
+                    // Allow the user entered text to be selected as well
+                    createSearchChoice: function (term, data) {
+                        if ($(data).filter(function () {
+                            return this.text.localeCompare(term) === 0;
+                        }).length === 0) {
+                            return {id: term, text: term};
+                        }
+                    },
+                });
+
+                $('[for=username]').click(function () {
+                    $("#username").select2('open');
+                    return false;
+                });
+            }
+            // -->
+        </script>
+    </td>
+</tr>
+<tr>
+    <td class="trow2" valign="top">
+        <strong>{$lang->ougcAdvancedPostEditIpAddress}:</strong>
+    </td>
+    <td class="trow2">
+        <input type="text" class="textbox" name="ougc_adminpostedit[ipaddress]" value="{$ipAddress}" size="20"
+               maxlength="39"/>
+    </td>
+</tr>
+<tr>
+    <td class="trow2 smalltext" colspan="2">
+        <label>
+            <input type="checkbox" class="checkbox" name="ougc_adminpostedit[silent]" value="1"
+                   {$silentElementChecked}/>
+            {$lang->ougcAdvancedPostEditSilent}
+        </label>
+        <br/>
+        <label>
+            <input type="checkbox" class="checkbox" name="ougc_adminpostedit[reset]" value="1"
+                   {$resetElementChecked}/>
+            {$lang->ougcAdvancedPostEditReset}
+        </label>
+        <br/>
+        <label>
+            <input type="checkbox" class="checkbox" name="ougc_adminpostedit[forceusername]" value="1"
+                   {$forceUserChangeElementChecked}/>
+            {$lang->ougcAdvancedPostEditForceUserChange}
+        </label>
+    </td>
+</tr>

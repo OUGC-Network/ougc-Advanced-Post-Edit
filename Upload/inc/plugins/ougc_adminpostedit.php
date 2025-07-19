@@ -48,6 +48,13 @@ require_once ROOT . '/core.php';
 
 defined('PLUGINLIBRARY') || define('PLUGINLIBRARY', MYBB_ROOT . 'inc/plugins/pluginlibrary.php');
 
+if (defined('IN_ADMINCP')) {
+} else {
+    require_once ROOT . '/hooks/forum.php';
+
+    hooksAdd('ougc\AdvancedPostEdit\Hooks\Forum');
+}
+
 require_once ROOT . '/hooks/shared.php';
 
 hooksAdd('ougc\AdvancedPostEdit\Hooks\Shared');
@@ -111,22 +118,6 @@ function ougc_adminpostedit_uninstall()
 // Plugin class
 class OUGC_AdminPostEdit
 {
-    private $update_dateline = null;
-    private $update_user = null;
-
-    public function __construct()
-    {
-        global $plugins;
-
-        // Tell MyBB when to run the hook
-        if (defined('IN_ADMINCP')) {
-            $plugins->add_hook('admin_style_templates_set', [$this, 'load_language']);
-        } else {
-            $plugins->add_hook('editpost_end', [$this, 'hook_editpost_end']);
-            $plugins->add_hook('editpost_do_editpost_start', [$this, 'hook_editpost_do_editpost_start']);
-        }
-    }
-
     // Plugin API:_info() routine
     public function _info()
     {
@@ -315,14 +306,6 @@ if(use_xmlhttprequest == "1")
         }
     }
 
-    // Load language file
-    public function load_language()
-    {
-        global $lang;
-
-        isset($lang->setting_group_ougc_adminpostedit) or $lang->load('ougc_adminpostedit');
-    }
-
     // Build plugin info
     public function load_plugin_info()
     {
@@ -365,135 +348,6 @@ if(use_xmlhttprequest == "1")
             );
             admin_redirect('index.php?module=config-plugins');
         }
-    }
-
-    // Hook: editpost_end/datahandler_post_update
-    public function hook_editpost_end(&$dh)
-    {
-        global $fid, $ougc_adminpostedit, $mybb;
-
-        $ougc_adminpostedit = '';
-
-        if (!is_moderator($fid, 'caneditposts') || !is_member($mybb->settings['ougc_adminpostedit_groups'])) {
-            return;
-        }
-
-        global $lang, $templates, $pid, $db;
-
-        languageLoad();
-
-        $post = get_post($pid);
-
-        $p = [
-            'dateline' => $post['dateline'],
-            'uid' => $post['uid'],
-            'username' => $post['username'],
-            'ipaddress' => my_inet_ntop($db->unescape_binary($post['ipaddress'])),
-            'silent' => '',
-            'reset' => '',
-            'forceusername' => ''
-        ];
-
-        $timestamp = (int)$p['dateline'];
-
-        $search_username = '';
-
-        if ($mybb->request_method == 'post') {
-            $input = $mybb->get_input('ougc_adminpostedit', MyBB::INPUT_ARRAY);
-            $input['username'] = trim($input['username']);
-
-            $post_update_data = [];
-
-            if (!empty($input['timestamp'])) {
-                $timestamp = (int)$input['timestamp'];
-
-                if ($this->is_timestamp(
-                        $input['timestamp']
-                    ) && $p['dateline'] != $input['timestamp'] && TIME_NOW >= $input['timestamp']) // don't allow "future" posts
-                {
-                    $p['dateline'] = $post_update_data['dateline'] = (int)$input['timestamp'];
-
-                    $this->update_dateline = true;
-                }
-            }
-
-            $search_username = htmlspecialchars_uni($input['username']);
-
-            if (!empty($input['username'])/* && $p['username'] != $input['username']*/) {
-                $user = get_user_by_username($input['username'], ['fields' => ['username']]);
-
-                $user['uid'] = (int)$user['uid'];
-                $user['username'] = !empty($user['username']) ? $user['username'] : $input['username'];
-
-                $change_user = !empty($user['uid']) ? $user['uid'] != $p['uid'] : !empty($input['forceusername']);
-
-                if ($change_user) {
-                    $p['uid'] = $post_update_data['uid'] = (int)$user['uid'];
-                    $p['username'] = $user['username'];
-                    $post_update_data['username'] = $db->escape_string($p['username']);
-
-                    $this->update_user = true;
-                }
-            }
-
-            if (isset($input['ipaddress']) && $p['ipaddress'] != $input['ipaddress']) {
-                if (preg_match('#^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$#', $input['ipaddress'])) {
-                    $ipaddress = array_map('intval', explode('.', $input['ipaddress']));
-                    if (!($ipaddress[0] > 255 || $ipaddress[1] > 255 || $ipaddress[2] > 255 || $ipaddress[3] > 255)) {
-                        $p['ipaddress'] = implode('.', $ipaddress);
-                        $post_update_data['ipaddress'] = $db->escape_binary(my_inet_pton($p['ipaddress']));
-                    }
-                }
-            }
-
-            if (!empty($input['silent'])) {
-                $p['silent'] = ' checked="checked"';
-            }
-
-            if (!empty($input['reset'])) {
-                $p['reset'] = ' checked="checked"';
-
-                $post_update_data['edituid'] = $post_update_data['edittime'] = 0;
-            }
-
-            if (!empty($input['forceusername'])) {
-                $p['forceusername'] = ' checked="checked"';
-            }
-        }
-
-        $postDate = gmdate('Y-m-d', $timestamp);//yyyy-mm-dd
-
-        $postTime = gmdate('H:i:s', $timestamp);//HH:mm:ss
-
-        $ougc_adminpostedit = eval($templates->render('ougcadminpostedit'));
-    }
-
-    // Hook: editpost_do_editpost_start
-    public function hook_editpost_do_editpost_start()
-    {
-        global $mybb, $fid;
-
-        if (!is_moderator($fid, 'caneditposts') || !is_member($mybb->settings['ougc_adminpostedit_groups'])) {
-            return;
-        }
-
-        $input = $mybb->get_input('ougc_adminpostedit', MyBB::INPUT_ARRAY);
-
-        if (!empty($input['silent'])) {
-            $mybb->settings['showeditedbyadmin'] = 0;
-        }
-    }
-
-    // Helper function to check for valid timestamps
-    // @sepehr at https://gist.github.com/sepehr/6351385
-    public function is_timestamp($timestamp)
-    {
-        $check = (is_int($timestamp) or is_float($timestamp))
-            ? $timestamp
-            : (string)(int)$timestamp;
-        return ($check === $timestamp)
-            and ((int)$timestamp <= PHP_INT_MAX)
-            and ((int)$timestamp >= ~PHP_INT_MAX);
     }
 }
 
