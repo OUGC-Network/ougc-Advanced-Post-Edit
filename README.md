@@ -1,6 +1,6 @@
 <p align="center">
     <a href="" rel="noopener">
-        <img width="700" height="400" src="https://github.com/user-attachments/assets/802dbbc3-baeb-423b-b297-5afa607cc8cd" alt="Project logo">
+        <img width="700" height="400" src="https://github.com/user-attachments/assets/63f3addb-5e2c-4b77-aa11-b8e8113d4e14" alt="Project logo">
     </a>
 </p>
 
