@@ -26,11 +26,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-// Die if IN_MYBB is not defined, for security reasons.
-defined('IN_MYBB') or die('Direct initialization of this file is not allowed.');
+declare(strict_types=1);
 
-// PLUGINLIBRARY
-defined('PLUGINLIBRARY') or define('PLUGINLIBRARY', MYBB_ROOT . 'inc/plugins/pluginlibrary.php');
+use function ougc\AdvancedPostEdit\Core\hooksAdd;
+use function ougc\AdvancedPostEdit\Core\languageLoad;
+
+use const ougc\AdvancedPostEdit\ROOT;
+
+defined('IN_MYBB') || die('This file cannot be accessed directly.');
+
+// You can uncomment the lines below to avoid storing some settings in the DB
+define('ougc\AdvancedPostEdit\SETTINGS', [
+    //'key' => '',
+]);
+
+define('ougc\AdvancedPostEdit\DEBUG', false);
+
+define('ougc\AdvancedPostEdit\ROOT', MYBB_ROOT . 'inc/plugins/ougc/AdvancedPostEdit');
+
+require_once ROOT . '/core.php';
+
+defined('PLUGINLIBRARY') || define('PLUGINLIBRARY', MYBB_ROOT . 'inc/plugins/pluginlibrary.php');
+
+require_once ROOT . '/hooks/shared.php';
+
+hooksAdd('ougc\AdvancedPostEdit\Hooks\Shared');
 
 // Cache template
 if (defined('THIS_SCRIPT') && THIS_SCRIPT == 'editpost.php') {
@@ -94,29 +114,28 @@ class OUGC_AdminPostEdit
     private $update_dateline = null;
     private $update_user = null;
 
-    function __construct()
+    public function __construct()
     {
         global $plugins;
 
         // Tell MyBB when to run the hook
         if (defined('IN_ADMINCP')) {
-            $plugins->add_hook('admin_style_templates_set', array($this, 'load_language'));
+            $plugins->add_hook('admin_style_templates_set', [$this, 'load_language']);
         } else {
-            $plugins->add_hook('editpost_end', array($this, 'hook_editpost_end'));
-            $plugins->add_hook('datahandler_post_update', array($this, 'hook_editpost_end'));
-            $plugins->add_hook('editpost_do_editpost_start', array($this, 'hook_editpost_do_editpost_start'));
+            $plugins->add_hook('editpost_end', [$this, 'hook_editpost_end']);
+            $plugins->add_hook('editpost_do_editpost_start', [$this, 'hook_editpost_do_editpost_start']);
         }
     }
 
     // Plugin API:_info() routine
-    function _info()
+    public function _info()
     {
         global $lang;
 
-        $this->load_language();
+        languageLoad();
 
-        return array(
-            'name' => 'OUGC Admin Post Edit',
+        return [
+            'name' => 'ougc Admin Post Edit',
             'description' => $lang->setting_group_ougc_adminpostedit_desc,
             'website' => 'https://ougc.network',
             'author' => 'Omar G.',
@@ -125,20 +144,20 @@ class OUGC_AdminPostEdit
             'versioncode' => 1822,
             'compatibility' => '18*',
             'codename' => 'ougc_adminpostedit',
-            'pl' => array(
+            'pl' => [
                 'version' => 13,
                 'url' => 'https://community.mybb.com/mods.php?action=view&pid=573'
-            )
-        );
+            ]
+        ];
     }
 
     // Plugin API:_activate() routine
-    function _activate()
+    public function _activate()
     {
         global $PL, $lang, $mybb;
         $this->load_pluginlibrary();
 
-        $PL->templates('ougcadminpostedit', 'OUGC Admin Post Edit', array(
+        $PL->templates('ougcadminpostedit', 'ougc Admin Post Edit', [
             '' => '<tr>
 <td class="tcat" colspan="2"><strong>{$lang->ougc_adminpostedit_post}</strong></td>
 </tr>
@@ -216,20 +235,20 @@ if(use_xmlhttprequest == "1")
 <label><input type="checkbox" class="checkbox" name="ougc_adminpostedit[forceusername]" value="1" {$p[\'forceusername\']} /> {$lang->ougc_adminpostedit_post_forceusername}</label></span>
 </td>
 </tr>',
-        ));
+        ]);
 
         $PL->settings(
             'ougc_adminpostedit',
             $lang->setting_group_ougc_adminpostedit,
             $lang->setting_group_ougc_adminpostedit_desc,
-            array(
-                'groups' => array(
+            [
+                'groups' => [
                     'title' => $lang->setting_ougc_adminpostedit_groups,
                     'description' => $lang->setting_ougc_adminpostedit_groups_desc,
                     'optionscode' => 'groupselect',
                     'value' => 4
-                ),
-            )
+                ],
+            ]
         );
 
         require_once MYBB_ROOT . 'inc/adminfunctions_templates.php';
@@ -238,7 +257,7 @@ if(use_xmlhttprequest == "1")
         // Insert/update version into cache
         $plugins = $mybb->cache->read('ougc_plugins');
         if (!$plugins) {
-            $plugins = array();
+            $plugins = [];
         }
 
         $this->load_plugin_info();
@@ -256,14 +275,14 @@ if(use_xmlhttprequest == "1")
     }
 
     // Plugin API:_deactivate() routine
-    function _deactivate()
+    public function _deactivate()
     {
         require_once MYBB_ROOT . 'inc/adminfunctions_templates.php';
         find_replace_templatesets('editpost', '#' . preg_quote('{$ougc_adminpostedit}') . '#i', '', 0);
     }
 
     // Plugin API:_is_installed() routine
-    function _is_installed()
+    public function _is_installed()
     {
         global $cache;
 
@@ -273,7 +292,7 @@ if(use_xmlhttprequest == "1")
     }
 
     // Plugin API:_uninstall() routine
-    function _uninstall()
+    public function _uninstall()
     {
         global $PL, $cache;
         $this->load_pluginlibrary();
@@ -297,7 +316,7 @@ if(use_xmlhttprequest == "1")
     }
 
     // Load language file
-    function load_language()
+    public function load_language()
     {
         global $lang;
 
@@ -305,17 +324,17 @@ if(use_xmlhttprequest == "1")
     }
 
     // Build plugin info
-    function load_plugin_info()
+    public function load_plugin_info()
     {
         $this->plugin_info = ougc_adminpostedit_info();
     }
 
     // PluginLibrary requirement check
-    function load_pluginlibrary()
+    public function load_pluginlibrary()
     {
         global $lang;
         $this->load_plugin_info();
-        $this->load_language();
+        languageLoad();
 
         if (!file_exists(PLUGINLIBRARY)) {
             flash_message(
@@ -349,7 +368,7 @@ if(use_xmlhttprequest == "1")
     }
 
     // Hook: editpost_end/datahandler_post_update
-    function hook_editpost_end(&$dh)
+    public function hook_editpost_end(&$dh)
     {
         global $fid, $ougc_adminpostedit, $mybb;
 
@@ -361,11 +380,11 @@ if(use_xmlhttprequest == "1")
 
         global $lang, $templates, $pid, $db;
 
-        $this->load_language();
+        languageLoad();
 
         $post = get_post($pid);
 
-        $p = array(
+        $p = [
             'dateline' => $post['dateline'],
             'uid' => $post['uid'],
             'username' => $post['username'],
@@ -373,7 +392,7 @@ if(use_xmlhttprequest == "1")
             'silent' => '',
             'reset' => '',
             'forceusername' => ''
-        );
+        ];
 
         $timestamp = (int)$p['dateline'];
 
@@ -383,7 +402,7 @@ if(use_xmlhttprequest == "1")
             $input = $mybb->get_input('ougc_adminpostedit', MyBB::INPUT_ARRAY);
             $input['username'] = trim($input['username']);
 
-            $post_update_data = array();
+            $post_update_data = [];
 
             if (!empty($input['timestamp'])) {
                 $timestamp = (int)$input['timestamp'];
@@ -401,7 +420,7 @@ if(use_xmlhttprequest == "1")
             $search_username = htmlspecialchars_uni($input['username']);
 
             if (!empty($input['username'])/* && $p['username'] != $input['username']*/) {
-                $user = get_user_by_username($input['username'], array('fields' => array('username')));
+                $user = get_user_by_username($input['username'], ['fields' => ['username']]);
 
                 $user['uid'] = (int)$user['uid'];
                 $user['username'] = !empty($user['username']) ? $user['username'] : $input['username'];
@@ -440,124 +459,17 @@ if(use_xmlhttprequest == "1")
             if (!empty($input['forceusername'])) {
                 $p['forceusername'] = ' checked="checked"';
             }
-
-            if ($dh instanceof PostDataHandler) {
-                $dh->post_update_data = array_merge($dh->post_update_data, $post_update_data);
-
-                if (!empty($this->update_dateline) || !empty($this->update_user)) {
-                    global $plugins;
-
-                    $plugins->add_hook('datahandler_post_update_end', array($this, 'hook_datahandler_post_update_end'));
-                }
-            }
         }
+
+        $postDate = gmdate('Y-m-d', $timestamp);//yyyy-mm-dd
+
+        $postTime = gmdate('H:i:s', $timestamp);//HH:mm:ss
 
         $ougc_adminpostedit = eval($templates->render('ougcadminpostedit'));
     }
 
-    // Hook: editpost_end/datahandler_post_update
-    function hook_datahandler_post_update_end(&$dh)
-    {
-        global $db;
-
-        $forum = get_forum($dh->data['fid']);
-
-        $thread = get_thread($dh->data['tid']);
-        $thread['tid'] = (int)$thread['tid'];
-
-        $query = $db->simple_select(
-            'posts',
-            'pid',
-            "tid='{$thread['tid']}'",
-            array('limit' => 1, 'order_by' => 'dateline', 'order_dir' => 'asc')
-        );
-        $firstpost = $db->fetch_field($query, 'pid');
-
-        $post = get_post($dh->data['pid']);
-
-        $new_user = get_user($dh->post_update_data['uid']);
-        $new_user['uid'] = (int)$new_user['uid'];
-
-        $thread_update = array();
-
-        if ($this->update_user) {
-            $update_query = array();
-            if ($forum['usepostcounts']) {
-                $update_query['postnum'] = '+1';
-            }
-            if ($forum['usethreadcounts'] && $firstpost == $post['pid']) {
-                $update_query['threadnum'] = '+1';
-            }
-
-            if (!empty($update_query)) {
-                update_user_counters($new_user['uid'], $update_query);
-            }
-        }
-
-        if ($firstpost == $post['pid']) {
-            $thread_update = array(
-                'uid' => $this->update_user ? $dh->post_update_data['uid'] : (int)$post['uid'],
-                'username' => $this->update_user ? $dh->post_update_data['username'] : $db->escape_string(
-                    $post['username']
-                )
-            );
-        }
-
-        if ($this->update_dateline) {
-            $query = $db->simple_select(
-                'posts',
-                'dateline',
-                "uid='{$new_user['uid']}' AND visible=1",
-                array('limit' => 1, 'order_by' => 'dateline', 'order_dir' => 'desc')
-            );
-            $new_lastpost = $db->fetch_field($query, 'dateline');
-
-            $db->update_query('users', array('lastpost' => (int)$new_lastpost), "uid='{$new_user['uid']}'");
-        }
-
-        if ($firstpost == $post['pid']) {
-            $thread_update['dateline'] = $this->update_dateline ? $dh->post_update_data['dateline'] : (int)$post['dateline'];
-        }
-
-        if (!empty($thread_update)) {
-            $db->update_query('threads', $thread_update, "tid='{$thread['tid']}'");
-        }
-
-        $old_user = get_user($dh->data['uid']);
-        $old_user['uid'] = (int)$old_user['uid'];
-
-        if ($this->update_user) {
-            $update_query = array();
-            if ($forum['usepostcounts']) {
-                $update_query['postnum'] = '-1';
-            }
-            if ($forum['usethreadcounts'] && $firstpost == $post['pid']) {
-                $update_query['threadnum'] = '-1';
-            }
-
-            if (!empty($update_query)) {
-                update_user_counters($old_user['uid'], $update_query);
-            }
-        }
-
-        if ($this->update_dateline && $new_user['uid'] != $old_user['uid']) {
-            $query = $db->simple_select(
-                'posts',
-                'dateline',
-                "uid='{$old_user['uid']}' AND visible=1",
-                array('limit' => 1, 'order_by' => 'dateline', 'order_dir' => 'desc')
-            );
-            $new_lastpost = $db->fetch_field($query, 'dateline');
-
-            $db->update_query('users', array('lastpost' => (int)$new_lastpost), "uid='{$old_user['uid']}'");
-        }
-
-        update_last_post($dh->data['tid']);
-        update_forum_lastpost($dh->data['fid']);
-    }
-
     // Hook: editpost_do_editpost_start
-    function hook_editpost_do_editpost_start()
+    public function hook_editpost_do_editpost_start()
     {
         global $mybb, $fid;
 
@@ -574,7 +486,7 @@ if(use_xmlhttprequest == "1")
 
     // Helper function to check for valid timestamps
     // @sepehr at https://gist.github.com/sepehr/6351385
-    function is_timestamp($timestamp)
+    public function is_timestamp($timestamp)
     {
         $check = (is_int($timestamp) or is_float($timestamp))
             ? $timestamp
@@ -587,4 +499,4 @@ if(use_xmlhttprequest == "1")
 
 global $adminpostedit;
 
-$adminpostedit = new OUGC_AdminPostEdit;
+$adminpostedit = new OUGC_AdminPostEdit();

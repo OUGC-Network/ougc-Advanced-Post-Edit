@@ -26,8 +26,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
+$l = [
+    'ougcAdvancedPostEdit' => 'ougc Admin Post Edit',
+];
+
 // Plugin API
-$l['setting_group_ougc_adminpostedit'] = 'OUGC Admin Post Edit';
+$l['setting_group_ougc_adminpostedit'] = 'ougc Admin Post Edit';
 $l['setting_group_ougc_adminpostedit_desc'] = 'Allows administrators to edit additional post data.';
 
 // Edit post
