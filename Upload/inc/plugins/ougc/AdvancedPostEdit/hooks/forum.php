@@ -36,6 +36,21 @@ use function ougc\AdvancedPostEdit\Core\getSetting;
 use function ougc\AdvancedPostEdit\Core\getTemplate;
 use function ougc\AdvancedPostEdit\Core\languageLoad;
 
+function global_start(): void
+{
+    if (defined('THIS_SCRIPT') && THIS_SCRIPT === 'editpost.php') {
+        global $templatelist;
+
+        if (!isset($templatelist)) {
+            $templatelist = '';
+        } else {
+            $templatelist .= ',';
+        }
+
+        $templatelist .= 'ougcadminpostedit_' . implode(',ougcadminpostedit_', ['editSection']);
+    }
+}
+
 function editpost_end(): void
 {
     global $fid;
@@ -98,7 +113,7 @@ function editpost_end(): void
         $forceUserChangeElementChecked = 'checked="checked"';
     }
 
-    $ougc_adminpostedit = eval(getTemplate());
+    $ougc_adminpostedit = eval(getTemplate('editSection'));
 }
 
 function editpost_do_editpost_start(): void
