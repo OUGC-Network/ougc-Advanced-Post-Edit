@@ -2,7 +2,7 @@
 
 /***************************************************************************
  *
- *    ougc Admin Post Edit plugin (/inc/languages/english/admin/ougc_adminpostedit.lang.php)
+ *    ougc Advanced Post Edit plugin (/inc/languages/english/admin/ougc_adminpostedit.lang.php)
  *    Author: Omar Gonzalez
  *    Copyright: © 2015 Omar Gonzalez
  *
@@ -27,10 +27,10 @@
  ****************************************************************************/
 
 $l = [
-    'ougcAdvancedPostEdit' => 'ougc Admin Post Edit',
+    'ougcAdvancedPostEdit' => 'ougc Advanced Post Edit',
     'ougcAdvancedPostEditDescription' => 'Allow administrators to edit additional post data.',
 
-    'setting_group_ougc_adminpostedit' => 'ougc Admin Post Edit',
+    'setting_group_ougc_adminpostedit' => 'ougc Advanced Post Edit',
     'setting_group_ougc_adminpostedit_desc' => 'Allow administrators to edit additional post data.',
 
     'setting_ougc_adminpostedit_groups' => 'Moderator Groups',

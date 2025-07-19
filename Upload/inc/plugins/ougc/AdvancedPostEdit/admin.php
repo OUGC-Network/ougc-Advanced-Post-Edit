@@ -2,7 +2,7 @@
 
 /***************************************************************************
  *
- *    ougc Admin Post Edit plugin (/inc/plugins/ougc/AdvancedPostEdit/admin.php)
+ *    ougc Advanced Post Edit plugin (/inc/plugins/ougc/AdvancedPostEdit/admin.php)
  *    Author: Omar Gonzalez
  *    Copyright: © 2015 Omar Gonzalez
  *
@@ -45,7 +45,7 @@ function pluginInformation(): array
     languageLoad();
 
     return [
-        'name' => 'ougc Admin Post Edit',
+        'name' => 'ougc Advanced Post Edit',
         'description' => $lang->ougcAdvancedPostEditDescription,
         'website' => 'https://ougc.network',
         'author' => 'Omar G.',
@@ -119,7 +119,7 @@ function pluginActivation(): void
     }
 
     if ($templates) {
-        $PL->templates('ougcadminpostedit', 'ougc Admin Post Edit', $templates);
+        $PL->templates('ougcadminpostedit', 'ougc Advanced Post Edit', $templates);
     }
 
     $plugins = $cache->read('ougc_plugins');

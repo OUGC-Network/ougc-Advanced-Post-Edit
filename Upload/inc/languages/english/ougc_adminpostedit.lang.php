@@ -2,7 +2,7 @@
 
 /***************************************************************************
  *
- *    ougc Admin Post Edit plugin (/inc/languages/english/ougc_adminpostedit.lang.php)
+ *    ougc Advanced Post Edit plugin (/inc/languages/english/ougc_adminpostedit.lang.php)
  *    Author: Omar Gonzalez
  *    Copyright: © 2015 Omar Gonzalez
  *
@@ -27,7 +27,7 @@
  ****************************************************************************/
 
 $l = [
-    'ougcAdvancedPostEdit' => 'ougc Admin Post Edit',
+    'ougcAdvancedPostEdit' => 'ougc Advanced Post Edit',
 
     'ougcAdvancedPostEditTitle' => 'Advanced Edit Options',
     'ougcAdvancedPostEditDateTime' => 'Post Date/Time',

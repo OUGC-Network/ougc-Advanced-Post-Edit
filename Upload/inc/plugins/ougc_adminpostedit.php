@@ -2,7 +2,7 @@
 
 /***************************************************************************
  *
- *    ougc Admin Post Edit plugin (/inc/plugins/ougc_adminpostedit.php)
+ *    ougc Advanced Post Edit plugin (/inc/plugins/ougc_adminpostedit.php)
  *    Author: Omar Gonzalez
  *    Copyright: © 2015 Omar Gonzalez
  *
