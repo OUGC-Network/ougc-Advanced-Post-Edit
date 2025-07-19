@@ -50,8 +50,8 @@ function pluginInformation(): array
         'website' => 'https://ougc.network',
         'author' => 'Omar G.',
         'authorsite' => 'https://ougc.network',
-        'version' => '1.8.22',
-        'versioncode' => 1822,
+        'version' => '2.0.0',
+        'versioncode' => 2000,
         'compatibility' => '18*',
         'codename' => 'ougc_adminpostedit',
         'pl' => [
