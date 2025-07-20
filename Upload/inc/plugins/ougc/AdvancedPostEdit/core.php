@@ -101,7 +101,7 @@ function getTemplate(string $templateName = '', bool $enableHTMLComments = true)
     return $templates->render(getTemplateName($templateName), true, $enableHTMLComments);
 }
 
-function getSetting(string $settingKey = ''): bool|string|int
+function getSetting(string $settingKey = '')
 {
     global $mybb;
 
