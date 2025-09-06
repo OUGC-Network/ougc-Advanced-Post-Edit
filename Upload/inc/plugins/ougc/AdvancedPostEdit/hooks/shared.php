@@ -41,15 +41,14 @@ use function ougc\AdvancedPostEdit\Core\recountUserThreads;
 
 function datahandler_post_validate_post(PostDataHandler &$dataHandler): PostDataHandler
 {
-    if (!is_moderator($dataHandler->data['fid'], 'caneditposts') || !is_member(getSetting('groups'))) {
+    if (!is_moderator($dataHandler->data['fid'], 'caneditposts') ||
+        !is_member(getSetting('groups'))) {
         return $dataHandler;
     }
 
     global $mybb, $db;
 
-    $postID = (int)$dataHandler->data['pid'];
-
-    $postData = get_post($postID);
+    $postData = get_post($dataHandler->data['pid'] ?? 0);
 
     $editOptions = $mybb->get_input('ougc_adminpostedit', MyBB::INPUT_ARRAY);
 
@@ -67,9 +66,9 @@ function datahandler_post_validate_post(PostDataHandler &$dataHandler): PostData
         }
     }
 
-    $editOptions['username'] = trim($editOptions['username']);
-
     if (!empty($editOptions['username'])) {
+        $editOptions['username'] = trim($editOptions['username']);
+
         $userData = get_user_by_username($editOptions['username'], ['fields' => ['username']]);
 
         if (empty($userData['uid']) && empty($editOptions['forceusername'])) {
@@ -86,6 +85,7 @@ function datahandler_post_validate_post(PostDataHandler &$dataHandler): PostData
     }
 
     if (isset($editOptions['ipaddress']) &&
+        isset($postData['ipaddress']) &&
         my_inet_ntop($db->unescape_binary($postData['ipaddress'])) !== $editOptions['ipaddress']
 
     ) {
